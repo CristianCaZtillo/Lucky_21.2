@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BlackJack</title>
+<link href="https://fonts.Lucky21.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:         #f1f3f4;
+  --surface:    #ffffff;
+  --felt:       #1e7e4a;
+  --felt-dark:  #155d36;
+  --felt-rim:   #0f4526;
+  --blue:       #1a73e8;
+  --blue-h:     #1557b0;
+  --red:        #d93025;
+  --text-pri:   #202124;
+  --text-sec:   #5f6368;
+  --border:     #dadce0;
+  --sh-sm:      0 1px 3px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.08);
+  --sh-md:      0 4px 12px rgba(0,0,0,.15);
+  --sh-card:    2px 4px 10px rgba(0,0,0,.22);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Roboto',sans-serif;background:var(--bg);min-height:100vh;display:flex;flex-direction:column;align-items:center;}
+
+/* Top bar */
+.topbar{width:100%;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;height:56px;gap:12px;box-shadow:var(--sh-sm);position:sticky;top:0;z-index:10;}
+.topbar-logo{display:flex;align-items:center;gap:10px;font-family:'Google Sans',sans-serif;font-size:18px;font-weight:500;color:var(--text-pri);}
+.topbar-div{width:1px;height:24px;background:var(--border);margin:0 4px;}
+.topbar-title{font-family:'Google Sans',sans-serif;font-size:18px;font-weight:400;color:var(--text-sec);}
+.topbar-spacer{flex:1;}
+.topbar-btn{display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:20px;border:1px solid var(--border);background:var(--surface);font-family:'Google Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text-pri);cursor:pointer;transition:background .15s,box-shadow .15s;}
+.topbar-btn:hover{background:var(--bg);box-shadow:var(--sh-sm);}
+
+/* Layout */
+.game-wrap{width:100%;max-width:820px;padding:20px 16px 40px;display:flex;flex-direction:column;gap:16px;}
+
+/* Stat chips */
+.stat-bar{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:6px 16px;font-family:'Google Sans',sans-serif;font-size:13px;color:var(--text-sec);box-shadow:var(--sh-sm);display:flex;align-items:center;gap:6px;}
+.stat-chip strong{color:var(--text-pri);font-weight:500;}
+
+/* Table */
+.table{background:var(--felt);border-radius:24px;border:6px solid var(--felt-rim);box-shadow:var(--sh-md),inset 0 0 60px rgba(0,0,0,.15);padding:28px 24px;display:flex;flex-direction:column;gap:20px;position:relative;overflow:hidden;}
+.table::before{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.03) 0,rgba(255,255,255,.03) 1px,transparent 1px,transparent 6px);pointer-events:none;}
+
+/* Zone */
+.zone{display:flex;flex-direction:column;gap:10px;}
+.zone-header{display:flex;align-items:center;gap:10px;}
+.zone-label{font-family:'Google Sans',sans-serif;font-size:11px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.55);}
+.count-pill{background:rgba(0,0,0,.25);border-radius:12px;padding:2px 10px;font-family:'Google Sans',sans-serif;font-size:13px;font-weight:500;color:#fff;min-width:32px;text-align:center;transition:background .2s;}
+.count-pill.bust{background:rgba(217,48,37,.7);}
+.count-pill.bj{background:rgba(26,115,232,.7);}
+
+/* Cards row */
+.cards-row{display:flex;flex-wrap:wrap;gap:8px;min-height:96px;align-items:flex-start;}
+
+/* Card */
+.card{width:64px;height:92px;background:#fff;border-radius:8px;box-shadow:var(--sh-card);display:flex;flex-direction:column;justify-content:space-between;padding:5px 6px;font-family:'Google Sans',sans-serif;font-weight:700;font-size:13px;position:relative;animation:deal .3s cubic-bezier(.34,1.56,.64,1) both;flex-shrink:0;border:1px solid rgba(0,0,0,.06);}
+@keyframes deal{from{transform:translateY(-40px) scale(.85);opacity:0;}to{transform:translateY(0) scale(1);opacity:1;}}
+.card.red{color:var(--red);}
+.card.black{color:#202124;}
+.card-tl{line-height:1.1;}
+.card-rank{font-size:13px;}
+.card-suit{font-size:10px;}
+.card-center{text-align:center;font-size:26px;line-height:1;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);}
+.card-br{align-self:flex-end;transform:rotate(180deg);line-height:1.1;}
+
+/* Hole */
+.card-hole{width:64px;height:92px;background:repeating-linear-gradient(135deg,#1a73e8 0,#1a73e8 6px,#1557b0 6px,#1557b0 12px);border-radius:8px;border:2px solid rgba(255,255,255,.3);box-shadow:var(--sh-card);display:flex;align-items:center;justify-content:center;animation:deal .3s cubic-bezier(.34,1.56,.64,1) both;flex-shrink:0;}
+
+/* Split divider */
+.split-div{width:2px;height:92px;background:rgba(255,255,255,.3);border-radius:2px;align-self:center;margin:0 4px;}
+
+.felt-divider{height:1px;background:rgba(255,255,255,.12);}
+
+/* Message */
+.message-wrap{text-align:center;min-height:48px;display:flex;align-items:center;justify-content:center;}
+.message{font-family:'Google Sans',sans-serif;font-size:15px;color:rgba(255,255,255,.85);letter-spacing:.3px;}
+.message.result{font-size:22px;font-weight:700;letter-spacing:.5px;animation:pop .35s cubic-bezier(.34,1.56,.64,1);}
+@keyframes pop{from{transform:scale(.7);opacity:0;}to{transform:scale(1);opacity:1;}}
+.message.win{color:#81c995;}
+.message.lose{color:#f28b82;}
+.message.tie{color:#fdd663;}
+.message.info{color:rgba(255,255,255,.7);font-size:13px;}
+
+/* Buttons */
+.actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+.btn{font-family:'Google Sans',sans-serif;font-size:14px;font-weight:500;padding:9px 20px;border-radius:20px;border:none;cursor:pointer;transition:background .15s,box-shadow .15s,transform .1s;letter-spacing:.25px;display:flex;align-items:center;gap:6px;}
+.btn:active{transform:scale(.96);}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.btn-primary{background:var(--blue);color:#fff;}
+.btn-primary:hover:not(:disabled){background:var(--blue-h);box-shadow:0 2px 8px rgba(26,115,232,.4);}
+.btn-secondary{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.3);}
+.btn-secondary:hover:not(:disabled){background:rgba(255,255,255,.28);}
+.btn-new{background:var(--surface);color:var(--blue);border:1px solid var(--border);box-shadow:var(--sh-sm);}
+.btn-new:hover{background:var(--bg);}
+
+
+
+/* Score card */
+.score-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 24px;display:flex;justify-content:space-around;box-shadow:var(--sh-sm);}
+.score-item{text-align:center;}
+.score-label{font-size:11px;color:var(--text-sec);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+.score-value{font-family:'Google Sans',sans-serif;font-size:22px;font-weight:500;color:var(--text-pri);}
+
+@media(max-width:500px){
+  .card,.card-hole{width:54px;height:80px;}
+  .card-center{font-size:20px;}
+  .table{padding:20px 16px;border-radius:18px;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">
+    Lucky21
+  </div>
+  <div class="topbar-div"></div>
+  <div class="topbar-title">BlackJack</div>
+  <div class="topbar-spacer"></div>
+  <button class="topbar-btn" onclick="newGame()">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+    New Game
+  </button>
+</div>
+
+<div class="game-wrap">
+
+  <div class="stat-bar">
+    <div class="stat-chip">Wins <strong id="statWins">0</strong></div>
+    <div class="stat-chip">Losses <strong id="statLosses">0</strong></div>
+    <div class="stat-chip">Ties <strong id="statTies">0</strong></div>
+    <div class="stat-chip">Streak <strong id="statStreak">0</strong></div>
+  </div>
+
+  <div class="table">
+
+    <div class="zone">
+      <div class="zone-header">
+        <div class="zone-label">Dealer</div>
+        <div class="count-pill" id="dealerPill">—</div>
+      </div>
+      <div class="cards-row" id="dealerRow"></div>
+    </div>
+
+    <div class="felt-divider"></div>
+
+    <div class="message-wrap">
+      <div class="message" id="msg">Dealing…</div>
+    </div>
+
+    <div class="felt-divider"></div>
+
+    <div class="zone">
+      <div class="zone-header">
+        <div class="zone-label">You</div>
+        <div class="count-pill" id="playerPill">0</div>
+        <div class="zone-label" id="splitLabel" style="display:none;margin-left:16px;">Split</div>
+        <div class="count-pill" id="splitPill" style="display:none;">0</div>
+      </div>
+      <div class="cards-row" id="playerRow"></div>
+    </div>
+
+    <div class="actions" id="actionBar">
+      <button class="btn btn-primary"   id="btnHit"   onclick="doHit()">Hit</button>
+      <button class="btn btn-secondary" id="btnStand" onclick="doStand()">Stand</button>
+      <button class="btn btn-secondary" id="btnSplit" onclick="doSplit()" style="display:none">Split</button>
+      <button class="btn btn-new"       id="btnNew"   onclick="newGame()" style="display:none">New Game</button>
+    </div>
+
+  </div>
+
+  <div class="score-card">
+    <div class="score-item"><div class="score-label">Your Count</div><div class="score-value" id="scPlayer">—</div></div>
+    <div class="score-item"><div class="score-label">Dealer Count</div><div class="score-value" id="scDealer">—</div></div>
+    <div class="score-item"><div class="score-label">Cards Left</div><div class="score-value" id="scDeck">52</div></div>
+  </div>
+
+</div>
+
+
+
+<script>
+  const API_URL = "http://localhost:8080/api/game";
+  
+  // ── Helpers ──────────────────────────────────────────────────
+  function suitOf(c){ return c.includes('Hearts')?'♥':c.includes('Diamonds')?'♦':c.includes('Clubs')?'♣':'♠'; }
+  function isRed(c) { return c.includes('Hearts')||c.includes('Diamonds'); }
+  function rankLabel(c){ const r=c.split(' ')[0]; return {Jack:'J',Queen:'Q',King:'K',Ace:'A'}[r]||r; }
+  
+  function makeCard(name, delay=0){
+    const el = document.createElement('div');
+    el.className = 'card ' + (isRed(name) ? 'red' : 'black');
+    el.style.animationDelay = delay + 's';
+    const sym = suitOf(name), rnk = rankLabel(name);
+    el.innerHTML = `<div class="card-tl"><div class="card-rank">${rnk}</div><div class="card-suit">${sym}</div></div><div class="card-center">${sym}</div><div class="card-br"><div class="card-rank">${rnk}</div><div class="card-suit">${sym}</div></div>`;
+    return el;
+  }
+  
+  function makeHole(){
+    const el = document.createElement('div');
+    el.className = 'card-hole';
+    return el;
+  }
+  
+  function setMsg(text, cls=''){
+    const el = document.getElementById('msg');
+    el.textContent = text;
+    el.className = 'message ' + cls;
+  }
+  
+  // ── API Game Flow ─────────────────────────────────────────────
+  async function newGame() {
+    try {
+      const res = await fetch(`${API_URL}/new`, { method: "POST" });
+      const state = await res.json();
+      renderState(state);
+    } catch(err) {
+      setMsg("Error connecting to Spring Boot backend! Is it running on port 8080?", "result lose");
+    }
+  }
+  
+  async function doHit() {
+    const res = await fetch(`${API_URL}/hit`, { method: "POST" });
+    const state = await res.json();
+    renderState(state);
+  }
+  
+  async function doStand() {
+    const res = await fetch(`${API_URL}/stand`, { method: "POST" });
+    const state = await res.json();
+    renderState(state);
+  }
+  
+  function renderState(state) {
+    // 1. Render Dealer Cards
+    const dealerRow = document.getElementById("dealerRow");
+    dealerRow.innerHTML = "";
+    state.dealerCards.forEach((cardName, idx) => {
+      if (idx === 1 && state.hideDealerHole) {
+        dealerRow.appendChild(makeHole());
+      } else {
+        dealerRow.appendChild(makeCard(cardName, idx * 0.07));
+      }
+    });
+  
+    // 2. Render Player Cards
+    const playerRow = document.getElementById("playerRow");
+    playerRow.innerHTML = "";
+    state.playerCards.forEach((cardName, idx) => {
+      playerRow.appendChild(makeCard(cardName, (4 + idx) * 0.07));
+    });
+  
+    // 3. Update Scores and Counts
+    document.getElementById("dealerPill").textContent = state.hideDealerHole ? "?" : state.dealerCount;
+    document.getElementById("scDealer").textContent = state.hideDealerHole ? "?" : state.dealerCount;
+    document.getElementById("playerPill").textContent = state.playerCount;
+    document.getElementById("scPlayer").textContent = state.playerCount;
+  
+    // 4. Update Status Message & Action Buttons
+    setMsg(state.message, state.resultClass ? `result ${state.resultClass}` : "");
+    document.getElementById("btnHit").disabled = state.gameOver;
+    document.getElementById("btnStand").disabled = state.gameOver;
+    document.getElementById("btnNew").style.display = state.gameOver ? "" : "none";
+  }
+  
+  // Start game on load
+  newGame();
+  </script>
+  
+</body>
+</html>
